@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ================================================================
+         PARENT: Spring Boot BOM — inherits dependency management only.
+         We do NOT use spring-boot-starter-parent as the parent of this
+         POM because this is a library monorepo, not a runnable app.
+         Spring Boot BOM is imported in <dependencyManagement> instead.
+    ================================================================ -->
+    <groupId>io.github.biruksolomon</groupId>
+    <artifactId>springboot-toolkit</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Spring Boot Toolkit</name>
+    <description>
+        Production-ready, fully customizable Spring Boot starter libraries.
+        Drop any module in as a Maven dependency — auth, websocket, notifications,
+        file storage, and API scaffolding — all auto-configured and overridable.
+    </description>
+    <url>https://github.com/biruksolomon/springboot-toolkit</url>
+
+    <!-- ================================================================
+         MODULES — each is an independent publishable jar
+    ================================================================ -->
+    <modules>
+        <module>auth-starter</module>
+        <module>websocket-starter</module>
+        <module>notification-starter</module>
+        <module>storage-starter</module>
+        <module>api-starter</module>
+    </modules>
+
+    <!-- ================================================================
+         GLOBAL PROPERTIES
+    ================================================================ -->
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Core versions -->
+        <spring-boot.version>3.2.5</spring-boot.version>
+
+        <!-- Library versions — managed here, referenced in child POMs -->
+        <jjwt.version>0.12.6</jjwt.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok.version>1.18.32</lombok.version>
+        <springdoc.version>2.6.0</springdoc.version>
+        <bucket4j.version>8.10.1</bucket4j.version>
+        <totp.version>1.7.1</totp.version>
+        <liquibase.version>4.27.0</liquibase.version>
+        <testcontainers.version>1.19.8</testcontainers.version>
+        <flyway.version>10.13.0</flyway.version>
+
+        <!-- WebSocket -->
+        <netty.version>4.1.111.Final</netty.version>
+
+        <!-- Notification -->
+        <firebase.version>9.3.0</firebase.version>
+        <twilio.version>10.1.5</twilio.version>
+        <sendgrid.version>4.10.2</sendgrid.version>
+
+        <!-- Storage -->
+        <awssdk.version>2.25.60</awssdk.version>
+        <minio.version>8.5.10</minio.version>
+        <tika.version>2.9.2</tika.version>
+
+        <!-- Build plugin versions -->
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <jacoco-plugin.version>0.8.12</jacoco-plugin.version>
+    </properties>
+
+    <!-- ================================================================
+         DEPENDENCY MANAGEMENT — versions declared once, used in children
+         without repeating the version tag.
+    ================================================================ -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- Spring Boot BOM — manages ALL spring-boot-* versions -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Testcontainers BOM -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- AWS SDK BOM -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${awssdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- JWT -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+
+            <!-- MapStruct -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <!-- SpringDoc OpenAPI -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- Bucket4j -->
+            <dependency>
+                <groupId>com.bucket4j</groupId>
+                <artifactId>bucket4j-core</artifactId>
+                <version>${bucket4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bucket4j</groupId>
+                <artifactId>bucket4j-redis</artifactId>
+                <version>${bucket4j.version}</version>
+            </dependency>
+
+            <!-- TOTP / MFA -->
+            <dependency>
+                <groupId>dev.samstevens.totp</groupId>
+                <artifactId>totp-spring-boot-starter</artifactId>
+                <version>${totp.version}</version>
+            </dependency>
+
+            <!-- Firebase (notifications) -->
+            <dependency>
+                <groupId>com.google.firebase</groupId>
+                <artifactId>firebase-admin</artifactId>
+                <version>${firebase.version}</version>
+            </dependency>
+
+            <!-- Twilio (SMS) -->
+            <dependency>
+                <groupId>com.twilio.sdk</groupId>
+                <artifactId>twilio</artifactId>
+                <version>${twilio.version}</version>
+            </dependency>
+
+            <!-- SendGrid (email alternative) -->
+            <dependency>
+                <groupId>com.sendgrid</groupId>
+                <artifactId>sendgrid-java</artifactId>
+                <version>${sendgrid.version}</version>
+            </dependency>
+
+            <!-- MinIO (storage) -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <!-- Apache Tika (file type detection) -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ================================================================
+         COMMON DEPENDENCIES — inherited by ALL child modules
+    ================================================================ -->
+    <dependencies>
+
+        <!-- Lombok — available everywhere, optional in consumers -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Spring Boot Test — available in all modules -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ================================================================
+         BUILD — plugins shared across all modules
+    ================================================================ -->
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <!-- Compiler with annotation processor support (Lombok + MapStruct) -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <!-- Surefire — run unit tests -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+
+                <!-- Source jar — required for GitHub Packages / Maven Central -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals><goal>jar-no-fork</goal></goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Javadoc jar — required for Maven Central -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals><goal>jar</goal></goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- JaCoCo — code coverage -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <goals><goal>prepare-agent</goal></goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals><goal>report</goal></goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+
+        <!-- Apply these plugins to every module automatically -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- ================================================================
+         DISTRIBUTION — GitHub Packages publish target
+    ================================================================ -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/biruk-auth/springboot-toolkit</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- ================================================================
+         SCM
+    ================================================================ -->
+    <scm>
+        <connection>scm:git:git://github.com/biruk-auth/springboot-toolkit.git</connection>
+        <developerConnection>scm:git:ssh://github.com/biruk-auth/springboot-toolkit.git</developerConnection>
+        <url>https://github.com/biruk-auth/springboot-toolkit</url>
+    </scm>
+
+</project>
