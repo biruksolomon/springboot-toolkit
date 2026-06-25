@@ -1,526 +1,507 @@
-# spring-auth-core
+# springboot-toolkit
 
-> A self-contained, drop-in Spring Boot starter that provides a fully working authentication and authorization system with zero boilerplate — everything works out of the box and every piece is overridable.
+> A collection of production-ready, fully customizable Spring Boot starter libraries.
+> Drop any module in as a Maven dependency — zero boilerplate, everything overridable.
 
-[![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2%2B-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub Packages](https://img.shields.io/badge/Published-GitHub%20Packages-181717?logo=github)](https://github.com/biruksolomon/spring-auth-core/packages)
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration Reference](#configuration-reference)
-- [REST API](#rest-api)
-- [Database Schema](#database-schema)
-- [RBAC — Roles & Permissions](#rbac--roles--permissions)
-- [Extensibility & Overrides](#extensibility--overrides)
-- [Testing Support](#testing-support)
-- [Module Structure](#module-structure)
-- [Publishing](#publishing)
-- [Contributing](#contributing)
+[![Build](https://github.com/biruk-auth/springboot-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/biruk-auth/springboot-toolkit/actions)
+[![Version](https://img.shields.io/badge/version-1.0.0--SNAPSHOT-blue)](https://github.com/biruk-auth/springboot-toolkit/packages)
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen)](https://spring.io/projects/spring-boot)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
 ## Overview
 
-`spring-auth-core` is a Maven/Gradle library (packaged as a `jar`) built on top of Spring Boot 3.2+ and Spring Security. Pull it in as a dependency and your application immediately gains:
+`springboot-toolkit` is a monorepo of Spring Boot auto-configuration libraries built for developers who want a solid, consistent foundation across multiple projects without copy-pasting the same boilerplate every time.
 
-- JWT and session-based authentication
-- OAuth2 / Social login (Google, GitHub)
-- API Key auth for machine-to-machine calls
-- MFA / TOTP (Google Authenticator compatible)
-- Magic link / passwordless email login
-- Full RBAC with fine-grained permissions
-- Rate limiting, brute-force protection, and audit logging
-
-Every bean is annotated `@ConditionalOnMissingBean`, meaning the consuming application can override any part of the system by simply declaring its own bean.
-
-**Artifact coordinates:**
-
-```xml
-<groupId>io.github.biruksolomon</groupId>
-<artifactId>spring-auth-core</artifactId>
-```
+Each module is an independent `jar` published to GitHub Packages. You pick only what you need. Every bean is declared with `@ConditionalOnMissingBean` — your own beans always win.
 
 ---
 
-## Features
+## Modules
 
-### Authentication Mechanisms
-
-| Mechanism | Status | Notes |
-|---|---|---|
-| JWT (access + refresh) | ✅ Default | Configurable expiry, secret, issuer |
-| Refresh token rotation | ✅ Default | Old token invalidated on use |
-| Token blacklisting | ✅ Default | Via Redis on logout/revoke |
-| Session-based auth | ⚙️ Optional | Toggle via `auth.session.enabled` |
-| OAuth2 / Social login | ⚙️ Optional | Google, GitHub — extensible |
-| API Key auth | ⚙️ Optional | Keys stored hashed in DB |
-| MFA / TOTP | ⚙️ Optional | Google Authenticator compatible |
-| Magic link / passwordless | ⚙️ Optional | Email-based, configurable expiry |
-
-### User Management
-
-- Full CRUD with soft-delete
-- Email verification (token-based, configurable expiry)
-- Password reset (secure single-use token)
-- Password policies (min length, complexity, history)
-- Account locking after N failed login attempts (time-based or manual unlock)
-- Audit log — every auth event persisted
-- User profile extension point via interface
-
-### RBAC — Role-Based Access Control
-
-- **Roles** — named groups (`ADMIN`, `MANAGER`, `USER`, etc.)
-- **Permissions** — fine-grained actions (`user:read`, `invoice:create`, `report:export`)
-- **Role → Permission mapping** — many-to-many, fully API-managed
-- **Permission inheritance** — roles can extend other roles
-- **Dynamic permission checks** — `@RequiresPermission("invoice:create")` custom annotation
-- **Resource-level permissions** — optional ownership check
-- **Wildcard permissions** — `invoice:*` grants all invoice actions
-- Permissions stored in DB, cached in Redis, cache-busted on change
-
-### Security Infrastructure
-
-- Pre-wired Spring Security filter chain (fully overridable via `@ConditionalOnMissingBean`)
-- CORS defaults provided, overridable via `application.yml`
-- CSRF disabled by default for stateless JWT; enabled automatically in session mode
-- Rate limiting per IP and per user via **Bucket4j + Redis**
-- Brute-force protection on the login endpoint
-
----
-
-## Requirements
-
-| Requirement | Minimum Version |
-|---|---|
-| Java | 17 |
-| Spring Boot | 3.2 |
-| Redis | 6.x |
-| Relational DB | PostgreSQL 14+ / MySQL 8+ |
-
----
-
-## Installation
-
-### Maven
-
-Add the GitHub Packages repository and the dependency to your `pom.xml`:
-
-```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/biruksolomon/spring-auth-core</url>
-  </repository>
-</repositories>
-
-<dependencies>
-  <dependency>
-    <groupId>io.github.biruksolomon</groupId>
-    <artifactId>spring-auth-core</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-</dependencies>
-```
-
-### Gradle (Kotlin DSL)
-
-```kotlin
-repositories {
-    maven {
-        url = uri("https://maven.pkg.github.com/biruksolomon/spring-auth-core")
-        credentials {
-            username = System.getenv("GITHUB_ACTOR")
-            password = System.getenv("GITHUB_TOKEN")
-        }
-    }
-}
-
-dependencies {
-    implementation("io.github.biruksolomon:spring-auth-core:1.0.0")
-}
-```
-
-> **Note:** GitHub Packages requires authentication. Create a [personal access token](https://github.com/settings/tokens) with `read:packages` scope and set it as `GITHUB_TOKEN`.
+| Module | Description | Status |
+|--------|-------------|--------|
+| [`auth-starter`](#auth-starter) | JWT, OAuth2, RBAC, MFA, user management, audit log | 🚧 In Progress |
+| [`websocket-starter`](#websocket-starter) | STOMP WebSocket, JWT auth, presence tracking | 📋 Planned |
+| [`notification-starter`](#notification-starter) | Email, SMS, push — unified API | 📋 Planned |
+| [`storage-starter`](#storage-starter) | S3, MinIO, local disk — unified StorageService | 📋 Planned |
+| [`api-starter`](#api-starter) | Response envelope, pagination, versioning, OpenAPI | 📋 Planned |
 
 ---
 
 ## Quick Start
 
-1. Add the dependency (see [Installation](#installation)).
-2. Configure your `application.yml` (see [Configuration Reference](#configuration-reference)).
-3. Set required secrets as environment variables:
+### Prerequisites
 
-```bash
-export JWT_SECRET="your-256-bit-secret"
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/mydb"
-export SPRING_REDIS_HOST="localhost"
+- Java 17+
+- Maven 3.9+
+- A GitHub account (for GitHub Packages)
+
+### Configure GitHub Packages in your `~/.m2/settings.xml`
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_GITHUB_TOKEN</password>  <!-- needs read:packages scope -->
+    </server>
+  </servers>
+</settings>
 ```
 
-4. Start your Spring Boot application — all auth endpoints are registered automatically under the configured `base-path`.
+### Add the repository to your project `pom.xml`
 
-No `@EnableXxx` annotation or additional wiring is required. The library registers itself via Spring Boot auto-configuration.
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/biruk-auth/springboot-toolkit</url>
+  </repository>
+</repositories>
+```
+
+### Add the dependency you need
+
+```xml
+<!-- Auth only -->
+<dependency>
+  <groupId>io.github.biruk-auth</groupId>
+  <artifactId>auth-starter</artifactId>
+  <version>1.0.0</version>
+</dependency>
+
+<!-- Or combine modules -->
+<dependency>
+  <groupId>io.github.biruk-auth</groupId>
+  <artifactId>notification-starter</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
 
 ---
 
-## Configuration Reference
+## Module Details
 
-All properties live under the `auth.*` namespace. Every property has a sensible default.
+---
+
+### `auth-starter`
+
+The most complete module. Drop it in and get a fully working auth system backed by Spring Security.
+
+#### Features
+
+| Feature | Description |
+|---------|-------------|
+| **JWT Auth** | Access + refresh token pair, configurable expiry, token rotation |
+| **Token Blacklist** | Redis-backed logout/revocation, zero DB reads per request |
+| **OAuth2** | Google, GitHub social login — extensible to any provider |
+| **API Key Auth** | Machine-to-machine; keys stored SHA-256 hashed |
+| **MFA / TOTP** | Google Authenticator compatible, per-user opt-in |
+| **Magic Link** | Passwordless email login |
+| **RBAC** | Roles → Permissions (many-to-many), wildcard support (`invoice:*`) |
+| **Permission Inheritance** | Roles can extend other roles |
+| **@RequiresPermission** | Custom annotation for method-level permission checks |
+| **Resource Ownership** | Optional check — user can only modify their own resource |
+| **User Management** | Full CRUD, soft delete, email verification, account locking |
+| **Password Policy** | Min length, complexity, history — all configurable |
+| **Rate Limiting** | Per-IP and per-user via Bucket4j + Redis |
+| **Audit Log** | Every auth event stored and queryable |
+| **Email Flows** | Verify email, password reset — Thymeleaf HTML templates |
+
+#### Package Structure
+
+```
+auth-starter/src/main/java/io/github/birukauth/auth/
+├── autoconfigure/      Spring Boot auto-config entry points (@ConditionalOnMissingBean)
+├── properties/         Typed @ConfigurationProperties for all auth.* yaml keys
+├── domain/
+│   ├── entity/         JPA entities (AuthUser, AuthRole, AuthPermission, ...)
+│   └── enums/          AuthProvider, AuditAction, TokenType
+├── repository/         Spring Data JPA repos — one per entity
+├── dto/
+│   ├── request/        Validated inbound payloads (@Valid)
+│   └── response/       Outbound API shapes — entities never exposed directly
+├── security/
+│   ├── jwt/            Token creation, parsing, validation, Redis blacklist
+│   ├── apikey/         Header-based API key filter
+│   ├── rbac/           Permission resolution, caching, @RequiresPermission handling
+│   ├── ratelimit/      Bucket4j filter — per IP and per authenticated user
+│   └── userdetails/    Bridge between AuthUser entity and Spring Security
+├── service/            All business logic — no Spring Security knowledge here
+├── controller/         Thin HTTP layer — delegates to services
+├── event/              Decoupled auth events — hook via @EventListener
+├── annotation/         @RequiresPermission, @RequiresRole, @CurrentUser
+├── exception/          Typed exception hierarchy + @RestControllerAdvice handler
+└── mapper/             MapStruct entity ↔ DTO — zero manual mapping
+```
+
+#### REST Endpoints
+
+All endpoints prefixed by `auth.api.base-path` (default `/`).
+
+```
+POST   /auth/register
+POST   /auth/login
+POST   /auth/refresh
+POST   /auth/logout
+POST   /auth/verify-email
+POST   /auth/forgot-password
+POST   /auth/reset-password
+POST   /auth/mfa/setup
+POST   /auth/mfa/verify
+GET    /auth/me
+PUT    /auth/me
+GET    /admin/users
+GET    /admin/users/{id}
+PUT    /admin/users/{id}/roles
+DELETE /admin/users/{id}
+GET    /admin/roles
+POST   /admin/roles
+PUT    /admin/roles/{id}/permissions
+GET    /admin/permissions
+POST   /admin/permissions
+GET    /admin/audit-log
+```
+
+#### Configuration
 
 ```yaml
 auth:
   jwt:
-    secret: ${JWT_SECRET}          # Required — min 256 bits
-    access-token-expiry: 15m       # Default: 15 minutes
-    refresh-token-expiry: 7d       # Default: 7 days
-    issuer: my-app                 # Default: spring-auth-core
-
+    secret: ${JWT_SECRET}
+    access-token-expiry: 15m
+    refresh-token-expiry: 7d
+    issuer: my-app
   password:
-    min-length: 8                  # Default: 8
-    require-special-chars: true    # Default: true
-    history-count: 5               # Prevent reuse of last N passwords
-
+    min-length: 8
+    require-special-chars: true
+    history-count: 5
   account:
-    max-failed-attempts: 5         # Lock after N failures
-    lock-duration: 30m             # Auto-unlock after this duration
-
+    max-failed-attempts: 5
+    lock-duration: 30m
   email:
-    verification-required: true    # Default: true
-    token-expiry: 24h              # Default: 24 hours
-
+    verification-required: true
+    token-expiry: 24h
   mfa:
-    enabled: false                 # Default: false
-
+    enabled: false
   oauth2:
-    enabled: false                 # Default: false
-    providers:
-      - google
-      - github
-
+    enabled: false
+    providers: [google, github]
   api:
-    base-path: /api/v1             # Default: /
-
+    base-path: /api/v1
   rate-limit:
     login:
-      requests: 10                 # Max requests
-      per: 1m                      # Per time window
-
-  table-prefix: auth_              # Default: auth_ (avoids table name collisions)
+      requests: 10
+      per: 1m
+  table-prefix: auth_
 ```
 
----
-
-## REST API
-
-All endpoints are automatically registered under `auth.api.base-path` (default: `/`).
-
-### Authentication
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/auth/register` | Register a new user |
-| `POST` | `/auth/login` | Login → returns JWT access + refresh token pair |
-| `POST` | `/auth/refresh` | Exchange refresh token for a new access token |
-| `POST` | `/auth/logout` | Blacklist the current access token |
-| `POST` | `/auth/verify-email` | Verify email using token |
-| `POST` | `/auth/forgot-password` | Request a password reset link |
-| `POST` | `/auth/reset-password` | Execute password reset using token |
-| `POST` | `/auth/mfa/setup` | Generate TOTP QR code for MFA enrollment |
-| `POST` | `/auth/mfa/verify` | Verify a TOTP code |
-| `GET`  | `/auth/me` | Get current authenticated user profile |
-| `PUT`  | `/auth/me` | Update current user profile |
-
-### Admin
-
-> All admin endpoints require the `ADMIN` role.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/admin/users` | List all users (paginated) |
-| `GET` | `/admin/users/{id}` | Get a specific user |
-| `PUT` | `/admin/users/{id}/roles` | Assign roles to a user |
-| `DELETE` | `/admin/users/{id}` | Soft-delete a user |
-| `GET` | `/admin/roles` | List all roles |
-| `POST` | `/admin/roles` | Create a new role |
-| `PUT` | `/admin/roles/{id}/permissions` | Assign permissions to a role |
-| `GET` | `/admin/permissions` | List all permissions |
-| `POST` | `/admin/permissions` | Create a new permission |
-| `GET` | `/admin/audit-log` | Query audit events (filterable, paginated) |
-
----
-
-## Database Schema
-
-Schema is managed by **Liquibase** (swappable — see [Extensibility](#extensibility--overrides)). All tables use the configurable `auth_` prefix to avoid collisions with your application's tables.
-
-| Table | Purpose |
-|---|---|
-| `auth_users` | Core user records |
-| `auth_roles` | Role definitions |
-| `auth_permissions` | Permission definitions |
-| `auth_role_permissions` | Role → Permission mapping (many-to-many) |
-| `auth_user_roles` | User → Role mapping (many-to-many) |
-| `auth_refresh_tokens` | Issued refresh tokens (for rotation + revocation) |
-| `auth_api_keys` | Hashed API keys for machine-to-machine auth |
-| `auth_audit_log` | Immutable record of every auth event |
-| `auth_email_verification_tokens` | Single-use email verification tokens |
-| `auth_password_reset_tokens` | Single-use, expiring password reset tokens |
-
-To change the prefix, set `auth.table-prefix` in your `application.yml`. The consuming application can extend the Liquibase changelog by including additional changesets alongside the library's managed migrations.
-
----
-
-## RBAC — Roles & Permissions
-
-### Defining Permission Checks
-
-Use the `@RequiresPermission` annotation on any controller method or service method:
+#### Override Any Bean
 
 ```java
-@GetMapping("/invoices")
-@RequiresPermission("invoice:read")
-public List<InvoiceDto> listInvoices() { ... }
-
-@DeleteMapping("/invoices/{id}")
-@RequiresPermission("invoice:delete")
-public void deleteInvoice(@PathVariable Long id) { ... }
-```
-
-### Wildcard Permissions
-
-Granting `invoice:*` to a role gives it all `invoice:` actions automatically. This is evaluated at runtime — no code change required when new invoice permissions are added.
-
-### Permission Inheritance
-
-A role can extend another role, inheriting all of its permissions:
-
-```
-ADMIN extends MANAGER extends USER
-```
-
-Assigning `ADMIN` to a user implicitly grants all `MANAGER` and `USER` permissions.
-
-### Resource-Level Ownership
-
-For endpoints where a user should only modify their own resources, annotate with `@RequiresOwnership`. The library will compare the resource's `ownerId` field to the authenticated user's ID before allowing the operation.
-
-### Permission Caching
-
-All role-permission mappings are cached in Redis. The cache is automatically invalidated whenever a permission or role assignment is modified via the Admin API.
-
----
-
-## Extensibility & Overrides
-
-Every core bean is annotated `@ConditionalOnMissingBean`. Declare your own bean in your application context and it will take precedence.
-
-### Override the UserDetailsService
-
-```java
-@Service
-public class MyUserDetailsService implements UserDetailsService {
-    @Override
-    public UserDetails loadUserByUsername(String username) {
-        // your custom logic
-    }
-}
-```
-
-### Override the PasswordEncoder
-
-```java
+// Replace the default UserDetailsService
 @Bean
-public PasswordEncoder passwordEncoder() {
-    return new Argon2PasswordEncoder(...); // replace BCrypt(12) default
+public UserDetailsService myUserDetailsService(UserRepository repo) {
+    return username -> repo.findByEmail(username)
+        .orElseThrow(() -> new UsernameNotFoundException(username));
 }
-```
 
-### Override the Security Filter Chain
-
-```java
+// Replace the SecurityFilterChain entirely
 @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    // fully custom Spring Security configuration
-    return http.build();
+public SecurityFilterChain myFilterChain(HttpSecurity http) throws Exception {
+    // your custom config
 }
-```
 
-### Listen to Auth Events
-
-The library publishes a `Spring ApplicationEvent` for every auth action. Subscribe with `@EventListener`:
-
-```java
-@Component
-public class AuthEventListener {
-
-    @EventListener
-    public void onUserLogin(UserLoginEvent event) {
-        System.out.println("User logged in: " + event.getUsername());
-    }
-
-    @EventListener
-    public void onPasswordChanged(PasswordChangedEvent event) {
-        // send notification email, etc.
-    }
+// Listen to auth events
+@EventListener
+public void onLogin(UserLoggedInEvent event) {
+    analyticsService.track(event.getUserId(), "login");
 }
-```
-
-### Extend the User Profile
-
-Implement the `UserProfileExtension` interface to attach custom fields to the user entity without modifying the library:
-
-```java
-@Component
-public class MyProfileExtension implements UserProfileExtension {
-    @Override
-    public Map<String, Object> getAdditionalFields(Long userId) {
-        return Map.of("department", "Engineering", "employeeId", "E-1234");
-    }
-}
-```
-
-### Swap Liquibase for Flyway
-
-Exclude the Liquibase auto-configuration and provide your own `DataSource`-based migration setup. The table structure is documented in [Database Schema](#database-schema) — mirror it with your preferred migration tool.
-
----
-
-## Testing Support
-
-The library ships a dedicated test module with utilities for integration testing:
-
-### `@WithMockAuthUser`
-
-Injects a mock authenticated user with custom roles and permissions into the Spring Security context:
-
-```java
-@Test
-@WithMockAuthUser(username = "test@example.com", roles = {"ADMIN"}, permissions = {"user:read", "user:write"})
-void adminCanListUsers() throws Exception {
-    mockMvc.perform(get("/admin/users"))
-           .andExpect(status().isOk());
-}
-```
-
-### `AuthTestUtils`
-
-Helper class for generating test JWTs and mock user objects:
-
-```java
-@Autowired
-private AuthTestUtils authTestUtils;
-
-@Test
-void protectedEndpointRequiresToken() throws Exception {
-    String token = authTestUtils.generateTestJwt("user@example.com", List.of("USER"));
-
-    mockMvc.perform(get("/auth/me")
-           .header("Authorization", "Bearer " + token))
-           .andExpect(status().isOk());
-}
-```
-
-### `TestAuthAutoConfiguration`
-
-A lightweight auto-configuration for `@SpringBootTest` that stubs out Redis and the database, so you can test auth logic in isolation without external infrastructure:
-
-```java
-@SpringBootTest
-@Import(TestAuthAutoConfiguration.class)
-class AuthServiceTest { ... }
 ```
 
 ---
 
-## Module Structure
+### `websocket-starter`
+
+STOMP over WebSocket with first-class auth integration.
+
+#### Features
+
+- STOMP protocol with SockJS fallback
+- JWT handshake interceptor — authenticated connections only
+- Redis pub/sub message broker — scales across instances
+- Presence tracking — who is online, per room
+- Room/channel management — create, join, leave
+- Typed message routing with `@MessageMapping`
+- Heartbeat + reconnect configuration
+- Optional `auth-starter` integration for user context
+
+#### Configuration
+
+```yaml
+ws:
+  endpoint: /ws
+  allowed-origins: "*"
+  heartbeat:
+    incoming: 10000
+    outgoing: 10000
+  presence:
+    enabled: true
+    ttl: 30s
+```
+
+---
+
+### `notification-starter`
+
+One `NotificationService` interface. Three delivery channels.
+
+#### Features
+
+- **Email** — SMTP (Spring Mail) or SendGrid, Thymeleaf templates
+- **SMS** — Twilio, template variables supported
+- **Push** — Firebase FCM, topic and device targeting
+- Async delivery via Spring `@Async`
+- Retry with exponential backoff
+- Delivery log persisted to DB (optional)
+- Per-channel enable/disable via config
+- Deduplication via Redis (prevent double-send)
+
+#### Configuration
+
+```yaml
+notification:
+  email:
+    provider: smtp          # smtp | sendgrid
+    from: noreply@myapp.com
+  sms:
+    enabled: false
+    provider: twilio
+  push:
+    enabled: false
+    provider: firebase
+  async:
+    enabled: true
+    thread-pool-size: 5
+  retry:
+    max-attempts: 3
+    backoff-ms: 1000
+```
+
+---
+
+### `storage-starter`
+
+One `StorageService` interface. Any backend.
+
+#### Features
+
+- **AWS S3** — upload, download, delete, pre-signed URLs, multi-part
+- **MinIO** — self-hosted S3-compatible, same API
+- **Local disk** — for development and testing
+- File type validation via Apache Tika (no extension spoofing)
+- File size limits — configurable per endpoint
+- CDN URL generation — prefix swap for CloudFront/Cloudflare
+- File metadata persisted to DB (optional)
+- Image resizing hooks (integration point, not bundled)
+
+#### Configuration
+
+```yaml
+storage:
+  provider: s3              # s3 | minio | local
+  s3:
+    bucket: my-bucket
+    region: us-east-1
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+    cdn-url: https://cdn.myapp.com
+  minio:
+    endpoint: http://localhost:9000
+    bucket: my-bucket
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+  local:
+    base-path: /tmp/uploads
+  allowed-types: [image/jpeg, image/png, application/pdf]
+  max-file-size: 10MB
+```
+
+---
+
+### `api-starter`
+
+Consistent REST API surface in one dependency.
+
+#### Features
+
+- **Response envelope** — `{ status, message, data, timestamp, requestId }`
+- **Global exception handler** — maps all exceptions to structured error responses
+- **Pagination** — `PageRequest` builder, `PageResponse<T>` wrapper
+- **API versioning** — header-based (`X-API-Version`) or URL-based (`/v1/`)
+- **Request logging** — MDC-enriched, configurable log level
+- **Request ID** — `X-Request-Id` propagated through response headers
+- **CORS** — configurable allowed origins, methods, headers
+- **Health checks** — extended Actuator endpoints
+- **OpenAPI config** — pre-wired Swagger UI with auth integration
+
+#### Configuration
+
+```yaml
+api:
+  versioning:
+    strategy: url            # url | header
+    default-version: v1
+  response:
+    wrap-enabled: true
+  logging:
+    requests: true
+    level: INFO
+  cors:
+    allowed-origins: "*"
+    allowed-methods: [GET, POST, PUT, DELETE, PATCH]
+```
+
+---
+
+## Monorepo Structure
 
 ```
-spring-auth-core/
-├── src/
-│   ├── main/
-│   │   ├── java/io/github/biruksolomon/auth/
-│   │   │   ├── autoconfigure/       # @AutoConfiguration classes
-│   │   │   ├── config/              # SecurityConfig, CorsConfig, etc.
-│   │   │   ├── controller/          # All REST endpoints
-│   │   │   ├── service/             # AuthService, UserService, RoleService, etc.
-│   │   │   ├── domain/              # JPA entities (User, Role, Permission, …)
-│   │   │   ├── repository/          # Spring Data JPA repositories
-│   │   │   ├── security/            # JWT filter, RBAC filter, API key filter
-│   │   │   ├── event/               # Auth event classes + publisher
-│   │   │   ├── annotation/          # @RequiresPermission, @WithMockAuthUser
-│   │   │   ├── dto/                 # Request / response DTOs
-│   │   │   ├── exception/           # AuthException hierarchy + global handler
-│   │   │   └── properties/          # AuthProperties (@ConfigurationProperties)
-│   │   └── resources/
-│   │       ├── META-INF/spring/
-│   │       │   └── org.springframework.boot.autoconfigure.AutoConfiguration.imports
-│   │       └── db/changelog/        # Liquibase migration changesets
-│   └── test/                        # Unit + integration tests
-└── pom.xml                          # <packaging>jar</packaging>
-                                     # No spring-boot-maven-plugin
+springboot-toolkit/
+├── pom.xml                          ← Parent POM — version + dependency management
+│
+├── auth-starter/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/.../auth/      ← Full auth implementation
+│       └── test/java/.../auth/      ← Unit + integration tests
+│
+├── websocket-starter/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/.../websocket/
+│       └── test/
+│
+├── notification-starter/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/.../notification/
+│       └── test/
+│
+├── storage-starter/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/.../storage/
+│       └── test/
+│
+└── api-starter/
+    ├── pom.xml
+    └── src/
+        ├── main/java/.../api/
+        └── test/
+```
+
+---
+
+## Development
+
+### Clone and build all modules
+
+```bash
+git clone https://github.com/biruk-auth/springboot-toolkit.git
+cd springboot-toolkit
+mvn clean install -DskipTests
+```
+
+### Build a single module
+
+```bash
+mvn clean install -pl auth-starter -am -DskipTests
+```
+
+### Run tests for a module
+
+```bash
+mvn test -pl auth-starter
+```
+
+### Build with coverage report
+
+```bash
+mvn clean verify -pl auth-starter
+# Report: auth-starter/target/site/jacoco/index.html
+```
+
+---
+
+## Git Branch Strategy
+
+```
+main          ← stable releases only — tagged (v1.0.0, v1.1.0)
+develop       ← integration branch — all features merge here first
+
+feature/auth-core           JWT, login, register, refresh, logout
+feature/user-management     CRUD, soft-delete, account lock, password policy
+feature/rbac                Roles, permissions, @RequiresPermission, cache
+feature/email-flows         Email verify, password reset, magic link
+feature/mfa                 TOTP setup + verify
+feature/oauth2              Google + GitHub social login
+feature/api-keys            Machine-to-machine API key auth
+feature/rate-limiting       Bucket4j per-IP + per-user
+feature/audit-log           Audit event storage + query API
+feature/test-support        @WithMockAuthUser, AuthTestUtils
+feature/openapi-docs        Swagger annotations on all endpoints
+feature/websocket-core      websocket-starter base
+feature/notification-core   notification-starter base
+feature/storage-core        storage-starter base
+feature/api-core            api-starter base
+```
+
+Flow:
+```
+feature/* → PR → develop → (all tests green) → PR → main → tag → publish
 ```
 
 ---
 
 ## Publishing
 
-### Versioning
-
-This project follows [Semantic Versioning](https://semver.org/):
-
-| Version bump | When to use |
-|---|---|
-| Patch (`1.0.x`) | Bug fixes, non-breaking internal changes |
-| Minor (`1.x.0`) | New features, new optional config properties |
-| Major (`x.0.0`) | Breaking API or configuration changes |
-
-### GitHub Packages (Primary Target)
-
-Publishing is automated via GitHub Actions. A new package version is published whenever a version tag is pushed:
+### Publish to GitHub Packages
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+mvn deploy -pl auth-starter
 ```
 
-The workflow runs: **build → test → publish to GitHub Packages**.
+### Publish all modules
 
-### Maven Central (Optional)
+```bash
+mvn deploy
+```
 
-When the project is ready for public distribution, publish to Maven Central via [Sonatype OSSRH](https://central.sonatype.org/). Requires:
-
-1. A Sonatype account linked to `io.github.biruksolomon`
-2. GPG signing configured in the GitHub Actions workflow
-3. `OSSRH_USERNAME` and `OSSRH_PASSWORD` set as repository secrets
+Requires `GITHUB_TOKEN` set in environment or `~/.m2/settings.xml` as shown above.
 
 ---
 
-## Contributing
+## Roadmap
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/my-feature`
-3. Commit your changes following [Conventional Commits](https://www.conventionalcommits.org/)
-4. Open a pull request against `main`
-
-Please ensure all tests pass (`./mvnw verify`) and new features include corresponding unit or integration tests before submitting a PR.
+- [x] Monorepo scaffolding + parent POM
+- [ ] `auth-starter` — core JWT + user management
+- [ ] `auth-starter` — RBAC + permissions
+- [ ] `auth-starter` — email flows + MFA
+- [ ] `auth-starter` — OAuth2 + API keys
+- [ ] `api-starter` — response envelope + exception handling
+- [ ] `notification-starter` — email + SMS + push
+- [ ] `storage-starter` — S3 + MinIO
+- [ ] `websocket-starter` — STOMP + presence
+- [ ] GitHub Actions CI/CD pipeline
+- [ ] Maven Central publishing
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-<p align="center">
-  Built by <a href="https://github.com/biruksolomon">biruksolomon</a>
-</p>
-
+MIT — use freely in personal and commercial projects.
