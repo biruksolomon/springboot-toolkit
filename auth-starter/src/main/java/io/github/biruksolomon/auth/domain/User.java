@@ -1,149 +1,112 @@
 package io.github.biruksolomon.auth.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Core user entity.  The table name uses the configurable {@code auth_} prefix;
- * the default DDL is managed by Liquibase changelog 0001.
- */
-@Getter
-@Setter
 @Entity
-@Table(name = "auth_users",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uq_auth_users_email", columnNames = "email"),
-                @UniqueConstraint(name = "uq_auth_users_username", columnNames = "username")
-        })
-public class User {
+@Table(name = "auth_users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User implements UserDetails {
 
-    // ── Getters / Setters ────────────────────────────────────────────
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "email", nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "username", nullable = false, length = 100)
-    private String username;
+    @Column(nullable = false)
+    private String password;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    private String firstName;
+    private String lastName;
 
-    // ── Email verification ───────────────────────────────────────────
-    @Column(name = "email_verified", nullable = false)
+    @Column(nullable = false)
+    @Builder.Default
     private boolean emailVerified = false;
 
-    // ── Account state ────────────────────────────────────────────────
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private UserStatus status = UserStatus.ACTIVE;
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean accountLocked = false;
 
-    @Column(name = "failed_login_attempts", nullable = false)
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean enabled = true;
+
+    @Builder.Default
     private int failedLoginAttempts = 0;
 
-    @Column(name = "locked_until")
-    private Instant lockedUntil;
+    private LocalDateTime lockedUntil;
 
-    // ── Soft delete ──────────────────────────────────────────────────
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    private LocalDateTime updatedAt;
 
-    // ── MFA ─────────────────────────────────────────────────────────
-    @Column(name = "mfa_enabled", nullable = false)
-    private boolean mfaEnabled = false;
-
-    @Column(name = "mfa_secret")
-    private String mfaSecret;
-
-    // ── Audit timestamps ─────────────────────────────────────────────
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @Column(name = "last_login_at")
-    private Instant lastLoginAt;
-
-    // ── Roles (populated in later branch) ────────────────────────────
-    @Setter
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "auth_user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
-    // ── Lifecycle callbacks ──────────────────────────────────────────
-    @PrePersist
-    void onCreate() {
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .flatMap(role -> {
+                    Set<GrantedAuthority> authorities = new HashSet<>();
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+                    authorities.addAll(
+                            role.getPermissions().stream()
+                                    .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                                    .collect(Collectors.toSet())
+                    );
+                    return authorities.stream();
+                })
+                .collect(Collectors.toSet());
     }
 
-    @PreUpdate
-    void onUpdate() {
-        this.updatedAt = Instant.now();
+    @Override
+    public String getUsername() {
+        return email;
     }
 
-    // ── Constructors ─────────────────────────────────────────────────
-    protected User() {}
-
-    public User(String email, String username, String passwordHash) {
-        this.email = email;
-        this.username = username;
-        this.passwordHash = passwordHash;
-    }
-
-    // ── Business methods ─────────────────────────────────────────────
-
-    public boolean isAccountNonLocked() {
-        if (status == UserStatus.LOCKED) {
-            if (lockedUntil != null && Instant.now().isAfter(lockedUntil)) {
-                // time-based auto-unlock — caller should persist this change
-                this.status = UserStatus.ACTIVE;
-                this.failedLoginAttempts = 0;
-                this.lockedUntil = null;
-                return true;
-            }
-            return false;
-        }
+    @Override
+    public boolean isAccountNonExpired() {
         return true;
     }
 
-    public void incrementFailedAttempts(int maxAttempts, java.time.Duration lockDuration) {
-        this.failedLoginAttempts++;
-        if (this.failedLoginAttempts >= maxAttempts) {
-            this.status = UserStatus.LOCKED;
-            this.lockedUntil = Instant.now().plus(lockDuration);
-        }
+    @Override
+    public boolean isAccountNonLocked() {
+        return !accountLocked;
     }
 
-    public void resetFailedAttempts() {
-        this.failedLoginAttempts = 0;
-        if (this.status == UserStatus.LOCKED) {
-            this.status = UserStatus.ACTIVE;
-            this.lockedUntil = null;
-        }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
 
-    public void softDelete() {
-        this.deleted = true;
-        this.deletedAt = Instant.now();
-        this.status = UserStatus.DELETED;
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
