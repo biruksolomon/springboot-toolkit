@@ -3,11 +3,10 @@ package io.github.biruksolomon.auth.service;
 import io.github.biruksolomon.auth.exception.AuthException;
 import io.github.biruksolomon.auth.properties.AuthProperties;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
 
-@Service
+
 @RequiredArgsConstructor
 public class PasswordValidationService {
 

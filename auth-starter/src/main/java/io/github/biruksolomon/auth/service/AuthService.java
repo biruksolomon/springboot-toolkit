@@ -13,14 +13,12 @@ import io.github.biruksolomon.auth.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {

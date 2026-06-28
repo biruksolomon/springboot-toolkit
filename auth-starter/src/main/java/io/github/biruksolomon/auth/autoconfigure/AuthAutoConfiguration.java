@@ -11,11 +11,13 @@ import io.github.biruksolomon.auth.service.AuthService;
 import io.github.biruksolomon.auth.service.PasswordValidationService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @AutoConfiguration
+@EnableConfigurationProperties(AuthProperties.class)
 @ComponentScan(basePackages = "io.github.biruksolomon.auth")
 public class AuthAutoConfiguration {
 

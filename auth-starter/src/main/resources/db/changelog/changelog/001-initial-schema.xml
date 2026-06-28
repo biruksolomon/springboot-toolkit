@@ -24,9 +24,10 @@
             <column name="account_locked" type="BOOLEAN" defaultValue="false">
                 <constraints nullable="false"/>
             </column>
-            <column name="enabled" type="BOOLEAN" defaultValue="true">
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
                 <constraints nullable="false"/>
             </column>
+            <column name="deleted_at" type="TIMESTAMP"/>
             <column name="failed_login_attempts" type="INT" defaultValue="0"/>
             <column name="locked_until" type="TIMESTAMP"/>
             <column name="created_at" type="TIMESTAMP" defaultValue="CURRENT_TIMESTAMP">
