@@ -1,5 +1,8 @@
 package io.github.biruksolomon.auth.exception;
 
+import lombok.Getter;
+
+@Getter
 public class AuthException extends RuntimeException {
     private final String code;
 
@@ -11,10 +14,6 @@ public class AuthException extends RuntimeException {
     public AuthException(String message, String code, Throwable cause) {
         super(message, cause);
         this.code = code;
-    }
-
-    public String getCode() {
-        return code;
     }
 
     public static class InvalidCredentials extends AuthException {
