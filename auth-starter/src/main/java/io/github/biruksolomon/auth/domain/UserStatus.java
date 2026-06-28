@@ -1,5 +1,7 @@
 package io.github.biruksolomon.auth.domain;
 
+import lombok.Getter;
+
 /**
  * Represents the status of a user account.
  *
@@ -8,6 +10,7 @@ package io.github.biruksolomon.auth.domain;
  * - DISABLED: User account is disabled by admin, user cannot log in
  * - DELETED: User account is soft-deleted, not shown in listings
  */
+@Getter
 public enum UserStatus {
     ACTIVE("active", "User account is active and can login"),
     LOCKED("locked", "User account is temporarily locked"),
@@ -20,14 +23,6 @@ public enum UserStatus {
     UserStatus(String value, String description) {
         this.value = value;
         this.description = description;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public boolean isActive() {
