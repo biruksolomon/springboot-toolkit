@@ -1,4 +1,4 @@
-package io.github.biruksolomon.auth.autoconfig;
+package io.github.biruksolomon.auth.autoconfigure;
 
 import io.github.biruksolomon.auth.config.SecurityConfig;
 import io.github.biruksolomon.auth.controller.AuthController;
