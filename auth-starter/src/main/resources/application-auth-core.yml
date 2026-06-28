@@ -1,0 +1,53 @@
+auth:
+  jwt:
+    secret: ${JWT_SECRET:your-256-bit-secret-key-change-in-production}
+    access-token-expiry: 15m
+    refresh-token-expiry: 7d
+    issuer: spring-auth-core
+
+  password:
+    min-length: 8
+    require-special-chars: true
+    history-count: 5
+
+  account:
+    max-failed-attempts: 5
+    lock-duration: 30m
+
+  email:
+    verification-required: true
+    token-expiry: 24h
+
+  mfa:
+    enabled: false
+
+  oauth2:
+    enabled: false
+    providers: []
+
+  api:
+    base-path: /
+
+  rate-limit:
+    login:
+      requests: 10
+      per: 1m
+
+  table-prefix: auth_
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+
+logging:
+  level:
+    io.github.biruksolomon.auth: DEBUG
