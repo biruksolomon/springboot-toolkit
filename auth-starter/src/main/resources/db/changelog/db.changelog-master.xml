@@ -9,5 +9,6 @@
     <include file="/db/changelog/changelog/002-add-rbac.xml"/>
     <include file="/db/changelog/changelog/003-add-email-tokens.xml"/>
     <include file="db/changelog/changelog/004-add-mfa.xml"/>
+    <include file="db/changelog/changelog/005-add-oauth2.xml"/>
 
 </databaseChangeLog>

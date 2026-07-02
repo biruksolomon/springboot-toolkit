@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="006-add-oauth2" author="spring-auth-core">
+        <createTable tableName="auth_oauth2_users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_oauth2_user" references="auth_users(id)"/>
+            </column>
+            <column name="provider" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="provider_id" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="display_name" type="VARCHAR(255)"/>
+            <column name="profile_picture_url" type="VARCHAR(1000)"/>
+            <column name="connected_at" type="TIMESTAMP">
+                <constraints nullable="false" defaultValueDate="CURRENT_TIMESTAMP"/>
+            </column>
+            <column name="last_used_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="auth_oauth2_users" columnNames="provider,provider_id"
+                             constraintName="uk_oauth2_provider_id"/>
+
+        <createIndex indexName="idx_oauth2_user_id" tableName="auth_oauth2_users">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_oauth2_provider" tableName="auth_oauth2_users">
+            <column name="provider"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
