@@ -76,7 +76,7 @@ Each module is an independent `jar` published to GitHub Packages. You pick only 
 
 <!-- Or combine modules -->
 <dependency>
-  <groupId>io.github.biruk-auth</groupId>
+  <groupId>io.github.biruksolomon</groupId>
   <artifactId>notification-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
