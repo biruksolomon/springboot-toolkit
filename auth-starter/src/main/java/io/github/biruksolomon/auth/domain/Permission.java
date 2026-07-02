@@ -22,6 +22,8 @@ public class Permission {
 
     private String description;
 
+    private String module;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
