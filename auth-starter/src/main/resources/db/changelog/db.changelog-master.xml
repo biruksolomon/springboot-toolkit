@@ -11,5 +11,6 @@
     <include file="db/changelog/changelog/004-add-mfa.xml"/>
     <include file="db/changelog/changelog/005-add-oauth2.xml"/>
     <include file="db/changelog/changelog/006-add-api-keys.xml"/>
+    <include file="db/changelog/changelog/007-add-audit-logs.xml"/>
 
 </databaseChangeLog>

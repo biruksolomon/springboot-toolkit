@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="008-add-audit-logs" author="spring-auth-core">
+        <createTable tableName="auth_audit_logs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints foreignKeyName="fk_audit_user" references="auth_users(id)"/>
+            </column>
+            <column name="action" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_type" type="VARCHAR(50)"/>
+            <column name="resource_id" type="VARCHAR(500)"/>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="VARCHAR(500)"/>
+            <column name="client_ip" type="VARCHAR(50)"/>
+            <column name="user_agent" type="VARCHAR(500)"/>
+            <column name="timestamp" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_audit_user_id" tableName="auth_audit_logs">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_audit_action" tableName="auth_audit_logs">
+            <column name="action"/>
+        </createIndex>
+
+        <createIndex indexName="idx_audit_timestamp" tableName="auth_audit_logs">
+            <column name="timestamp"/>
+        </createIndex>
+
+        <createIndex indexName="idx_audit_status" tableName="auth_audit_logs">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
