@@ -101,6 +101,15 @@ public class JwtProvider {
         }
     }
 
+    public Long getExpiresIn(String token) {
+        Claims claims = parseToken(token);
+
+        long expiresAt = claims.getExpiration().getTime();
+        long now = System.currentTimeMillis();
+
+        return Math.max(0, (expiresAt - now) / 1000);
+    }
+
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = parseToken(token);
