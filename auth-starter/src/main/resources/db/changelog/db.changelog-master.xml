@@ -7,5 +7,6 @@
 
     <include file="/db/changelog/changelog/001-initial-schema.xml"/>
     <include file="/db/changelog/changelog/002-add-rbac.xml"/>
+    <include file="/db/changelog/changelog/003-add-email-tokens.xml"/>
 
 </databaseChangeLog>
