@@ -69,7 +69,7 @@ Each module is an independent `jar` published to GitHub Packages. You pick only 
 ```xml
 <!-- Auth only -->
 <dependency>
-  <groupId>io.github.biruk-auth</groupId>
+  <groupId>io.github.biruksolomon</groupId>
   <artifactId>auth-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
