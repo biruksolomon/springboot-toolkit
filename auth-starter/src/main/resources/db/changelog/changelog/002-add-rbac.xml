@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet id="003-add-rbac" author="auth-core">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="auth_permissions"/>
+            </not>
+        </preConditions>
+
+        <!-- Update permissions table with module column -->
+        <addColumn tableName="auth_permissions">
+            <column name="module" type="varchar(100)"/>
+            <column name="created_at" type="timestamp" defaultValueDate="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Create user_roles junction table -->
+        <createTable tableName="auth_user_roles">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="auth_user_roles" columnNames="user_id,role_id"/>
+        <addForeignKeyConstraint baseTableName="auth_user_roles" baseColumnNames="user_id"
+                                 referencedTableName="auth_users" referencedColumnNames="id" onDelete="CASCADE" constraintName=""/>
+        <addForeignKeyConstraint baseTableName="auth_user_roles" baseColumnNames="role_id"
+                                 referencedTableName="auth_roles" referencedColumnNames="id" onDelete="CASCADE" constraintName=""/>
+
+        <createIndex tableName="auth_user_roles" indexName="idx_user_roles">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
